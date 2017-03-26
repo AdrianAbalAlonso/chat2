@@ -1,13 +1,14 @@
 package com.example.aabalalonso.chat2;
 
-import android.Manifest;
-import android.content.pm.PackageManager;
+import android.os.Build;
+import android.content.DialogInterface;
+import android.database.Cursor;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
@@ -18,16 +19,22 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.drafts.Draft_17;
 import org.java_websocket.handshake.ServerHandshake;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -154,8 +161,28 @@ public class MainActivity extends AppCompatActivity
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        TextView textView = (TextView)findViewById(R.id.messages);
-                        textView.setText(textView.getText() + "\n" + message);
+
+                        String nombre;
+                        String msg;
+                        int priv;
+                        String det;
+
+                        try {
+                            JSONObject object = new JSONObject(message);
+                            nombre = object.getString("id");
+                            msg = object.getString("msg");
+                            priv = object.getInt("priv");
+                            det = object.getString("det");
+
+                            TextView textView = (TextView) findViewById(R.id.messages);
+                            textView.setText(textView.getText() + "\n" + nombre + " \n " + msg + " \n " + priv + " \n " + det);
+
+                        } catch (JSONException e) {
+                            TextView textView = (TextView) findViewById(R.id.messages);
+                            textView.setText(textView.getText() + "\n" + message);
+                        }
+
+
                     }
                 });
             }
@@ -175,12 +202,26 @@ public class MainActivity extends AppCompatActivity
 
     }
     public void sendMessage() {
-        EditText editText = (EditText)findViewById(R.id.txt);
-        mWebSocketClient.send(editText.getText().toString());
+        String user = "Pablite";
+        EditText editText = (EditText) findViewById(R.id.message);
+        CheckBox chk = (CheckBox) findViewById(R.id.chk);
+        EditText dest = (EditText) findViewById(R.id.destinatario);
+        String mensaje = editText.getText().toString();
+        int privado;
+        if (chk.isChecked()) {
+            privado = 1;
+        } else {
+            privado = 0;
+        }
+        String direccion = dest.getText().toString();
+        String miMsg = "{id:\"" + user + "\",msg:\"" + mensaje + "\",esPrivado:" + privado + ",dst:\"" + direccion + "\"}";
+
+        mWebSocketClient.send(miMsg);
         editText.setText("");
+        dest.setText("");
+
+
+    }
     }
 
 
-
-
-}
